@@ -1,26 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
-import { postProductApi } from "../../network/api";
+import {
+  deletesProductApi,
+  patchProductApi,
+  postProductApi,
+} from "../../network/api";
+import { useParams } from "react-router-dom";
 const ExpenseForm = () => {
   const [enteredTitle, setEnteredTitle] = useState("");
   const [enteredAmount, setEnteredAmount] = useState("");
   const [enteredDate, setEnteredDate] = useState("");
-  const [postData, setPostData] = useState([]);
   const [sheet, setSheet] = useState([]);
-
+  const [updateData, setUpdateData] = useState(0);
+  const [title, setTitle] = useState("");
+  const [datas, setDatas] = useState([]);
+  const {id} = useParams();
+  
+console.log(id,"fgdfgdf");
   const PostData = async () => {
     const res = await postProductApi({
-      id: 102,
+      id:Math.random().toString(),
       title: enteredTitle,
       amount: enteredAmount,
       date: enteredDate,
     });
-    setPostData(res);
-  };
-  const submitHandler = () => {
-    setEnteredTitle("");
-    setEnteredAmount("");
-    setEnteredDate("");
     setSheet((s) => [
       ...s,
       {
@@ -30,14 +33,31 @@ const ExpenseForm = () => {
       },
     ]);
     localStorage.setItem("userData", JSON.stringify(sheet));
+    setEnteredTitle("");
+    setEnteredAmount("");
+    setEnteredDate("");
   };
-  console.log(sheet.length);
   const handleDelete = (s) => {
     setSheet(sheet.filter((el) => el !== s));
   };
-  console.log(postData, "user postData");
+
+  const patchData = async () => {
+    const res = await patchProductApi(
+      { title: title, price: 4444 },
+      updateData
+    );
+    setDatas(res);
+  };
+  const deleteData = async (s) => {
+    const res = await deletesProductApi(updateData);
+    // setDatas(res);
+    setSheet(res.filter((el) => el !== s));
+  };
+
+  console.log(updateData,"1111");
   return (
     <Root>
+   <div className="text-center text-red-500 my-4 p-2 rounded"> <input onChange={(e)=>setTitle(e.target.value)} placeholder="Enter Change words" value={title}/></div>
       <div className="new-expense bg-[#a892ee] p-4 my-8 mx-auto">
         <div className="flex flex-wrap gap-4 text-left mb-4">
           <div className="new-expense__control">
@@ -73,10 +93,9 @@ const ExpenseForm = () => {
           <button
             type="submit"
             className=" rounded p-2 bg-[#40005d]"
-            onClick={() => {
-              submitHandler();
-              PostData();
-            }}
+            onClick={
+              PostData
+            }
           >
             Add Expense
           </button>
@@ -92,7 +111,7 @@ const ExpenseForm = () => {
             {sheet.map((i, ind) => {
               return (
                 <>
-                  <tr key={ind}>
+                  <tr key={ind}  onClick={() => setUpdateData(ind+1)}>
                     <td className="border p-2">{i.Title}</td>
                     <td className="border p-2">{i.Amount}</td>
                     <td className="border p-2">{i.Date_}</td>
@@ -103,6 +122,18 @@ const ExpenseForm = () => {
                       }}
                     >
                       delete
+                    </button>
+                    <button
+                      onClick={patchData}
+                      className="border m-2 rounded px-3  bg-green-600"
+                    >
+                      upadte data
+                    </button>
+                    <button
+                      onClick={deleteData}
+                      className="border my-2 rounded px-3  bg-red-600"
+                    >
+                      Delete
                     </button>
                   </tr>
                 </>

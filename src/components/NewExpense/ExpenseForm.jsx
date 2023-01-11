@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import {
-  deletesProductApi,
-  patchProductApi,
-  postProductApi,
+  deletesPostApi,
+  getUserTodos,
+  patchPostApi,
+  postPostApi,
+  putPostApi,
 } from "../../network/api";
 import { useParams } from "react-router-dom";
 const ExpenseForm = () => {
@@ -14,15 +16,17 @@ const ExpenseForm = () => {
   const [updateData, setUpdateData] = useState(0);
   const [title, setTitle] = useState("");
   const [datas, setDatas] = useState([]);
-  const {id} = useParams();
-  
-console.log(id,"fgdfgdf");
+  const { id } = useParams();
+
+  console.log(id, "fgdfgdf");
+
   const PostData = async () => {
-    const res = await postProductApi({
-      id:Math.random().toString(),
+    const res = await postPostApi({
+      id: Math.random().toString(),
       title: enteredTitle,
       amount: enteredAmount,
       date: enteredDate,
+      userId: 1,
     });
     setSheet((s) => [
       ...s,
@@ -30,61 +34,90 @@ console.log(id,"fgdfgdf");
         Title: enteredTitle,
         Amount: enteredAmount,
         Date_: enteredDate,
+        userId: 1,
       },
     ]);
-    localStorage.setItem("userData", JSON.stringify(sheet));
+    localStorage.setItem("userData", JSON.stringify(res));
     setEnteredTitle("");
     setEnteredAmount("");
     setEnteredDate("");
   };
-  const handleDelete = (s) => {
-    setSheet(sheet.filter((el) => el !== s));
-  };
-
-  const patchData = async () => {
-    const res = await patchProductApi(
-      { title: title, price: 4444 },
-      updateData
+  const putMethode = async () => {
+    const res = await putPostApi(
+      {
+        id: 1,
+        title: "put data",
+        body: "check put api",
+        userId: 1,
+      },
+      1
     );
     setDatas(res);
   };
+
+  const handleDelete = (s) => {
+    setSheet(sheet.filter((el) => el !== s));
+  };
   const deleteData = async (s) => {
-    const res = await deletesProductApi(updateData);
+    const res = await deletesPostApi(updateData);
     // setDatas(res);
     setSheet(res.filter((el) => el !== s));
   };
+  const patchData = async () => {
+    const res = await patchPostApi(
+      {
+        id: 1,
+        title: "patchdata",
+        body: "check api",
+        userId: 1,
+      },
+      1
+    );
+    setDatas(res);
+  };
 
-  console.log(updateData,"1111");
   return (
     <Root>
-   <div className="text-center text-red-500 my-4 p-2 rounded"> <input onChange={(e)=>setTitle(e.target.value)} placeholder="Enter Change words" value={title}/></div>
-      <div className="new-expense bg-[#a892ee] p-4 my-8 mx-auto">
+      <div className="text-3xl font-bold my-2 text-center">Expense Sheet</div>
+      <div className="text-center text-red-500 my-4 p-2 rounded">
+        <input
+          onChange={(e) => setTitle(e.target.value)}
+          className="p-2 text-black border-[#ccc] rounded-md"
+          placeholder="Enter Change words"
+          value={title}
+        />
+      </div>
+
+      <div className=" rounded-xl  w-[95%] sm:w-[50%] bg-[#a892ee] p-4 my-8  mx-auto">
         <div className="flex flex-wrap gap-4 text-left mb-4">
           <div className="new-expense__control">
-            <label>Title</label>
+            <label className="font-bold mb-2 block">Title</label>
             <input
               type="text"
               value={enteredTitle}
+              className="p-2 text-black border-[#ccc] rounded-md w-full"
               placeholder="Enter Item Name"
               onChange={(e) => setEnteredTitle(e.target.value)}
             />
           </div>
           <div className="new-expense__control">
-            <label>Amount</label>
+            <label className="font-bold mb-2 block">Amount</label>
             <input
               type="number"
               value={enteredAmount}
+              className="p-2 text-black border-[#ccc] rounded-md w-full"
               placeholder="Enter Item Amount"
               min="0.01"
               step="0.01"
               onChange={(e) => setEnteredAmount(e.target.value)}
             />
           </div>
-          <div className="new-expense__control">
-            <label>Date</label>
+          <div className="new-expense__control ">
+            <label className="font-bold mb-2 block ">Date</label>
             <input
               type="date"
               value={enteredDate}
+              className="p-2 text-black border-[#ccc] rounded-md w-full"
               onChange={(e) => setEnteredDate(e.target.value)}
             />
           </div>
@@ -93,53 +126,62 @@ console.log(id,"fgdfgdf");
           <button
             type="submit"
             className=" rounded p-2 bg-[#40005d]"
-            onClick={
-              PostData
-            }
+            onClick={PostData}
           >
             Add Expense
           </button>
         </div>
         <hr />
-        <div>
-          <table>
-            <tr>
-              <th className="border p-2">Title</th>
-              <th className="border p-2">Amount</th>
-              <th className="border p-2">Date</th>
-            </tr>
-            {sheet.map((i, ind) => {
-              return (
-                <>
-                  <tr key={ind}  onClick={() => setUpdateData(ind+1)}>
-                    <td className="border p-2">{i.Title}</td>
-                    <td className="border p-2">{i.Amount}</td>
-                    <td className="border p-2">{i.Date_}</td>
-                    <button
-                      className="mx-2  rounded p-2 bg-[#40005d]"
-                      onClick={() => {
-                        handleDelete(i);
-                      }}
-                    >
-                      delete
-                    </button>
-                    <button
-                      onClick={patchData}
-                      className="border m-2 rounded px-3  bg-green-600"
-                    >
-                      upadte data
-                    </button>
-                    <button
-                      onClick={deleteData}
-                      className="border my-2 rounded px-3  bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </tr>
-                </>
-              );
-            })}
-          </table>
+        <div className="my-4 border">
+          <div className="flex justify-between flex-wrap">
+            <div className=" p-1 ">Title</div>
+            <div className=" p-1 ">Amount</div>
+            <div className=" p-1 ">Date</div>
+          </div>
+          <hr className="my-2" />
+          {sheet.map((i, ind) => {
+            return (
+              <>
+                <div key={ind} onClick={() => setUpdateData(ind + 1)}>
+                  <div className="flex flex-wrap justify-between ">
+                    <div className=" text-sm p-1">{i.Title}</div>
+                    <div className=" text-sm p-1">{i.Amount}</div>
+                    <div className=" text-sm p-1">{i.Date_}</div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div>
+                      <button
+                        className="mx-2  rounded p-1 text-sm bg-[#40005d] hover:bg-[#762a99]"
+                        onClick={() => {
+                          handleDelete(i);
+                        }}
+                        // onClick={deleteData}
+                      >
+                        delete
+                      </button>
+                    </div>
+                    <div>
+                      <button
+                        onClick={patchData}
+                        className=" p-1 text-sm mx-2 rounded px-3  bg-[#40005d]  hover:bg-[#762a99]"
+                      >
+                        update
+                      </button>
+                    </div>
+                    <div>
+                      <button
+                        onClick={putMethode}
+                        className=" p-1 text-sm mx-2 rounded px-3  bg-[#40005d] hover:bg-[#762a99]"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  </div>
+                  <hr className="my-1"/>
+                </div>
+              </>
+            );
+          })}
         </div>
       </div>
     </Root>
@@ -147,24 +189,4 @@ console.log(id,"fgdfgdf");
 };
 
 export default ExpenseForm;
-const Root = styled.div`
-  .new-expense__control label {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-
-  .new-expense__control input {
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    width: 100%;
-    color: black;
-  }
-  .new-expense {
-    width: 51%;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
-  }
-`;
+const Root = styled.div``;
